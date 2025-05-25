@@ -1,8 +1,7 @@
 package com.luv2code.books.controller;
 
 import com.luv2code.books.entity.Books;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +26,79 @@ public class BookController {
         ));
     }
 
-    @GetMapping("/api")
-    public List<Books> getBooks() {
-        return books;
+    // Get Request
+
+//    @GetMapping("/api/allBooks")
+//    public List<Books> getAllBooks() {
+//        return books;
+//    }
+
+    // Path Variables
+
+//    @GetMapping("/api/books/{title}")
+//    public Books getBookByTitle(@PathVariable String title) {
+//        for(Books book: books) {
+//            if(book.getTitle().equalsIgnoreCase(title)) {
+//                return book;
+//            }
+//        }
+//        return null;
+//    }
+
+    @GetMapping("/api/books/{title}")
+    public Books getBookByTitle(@PathVariable String title) {
+        return books.stream()
+                .filter(book -> book.getTitle().equalsIgnoreCase(title))
+                .findFirst()
+                .orElse(null);
+    }
+
+    // Query Parameters
+
+//    @RequestMapping("api/books")
+//    public List<Books> getBooks(@RequestParam(required = false) String category) {
+//        if(category == null) {
+//            return books;
+//        }
+//        List<Books> filterBook = new ArrayList<>();
+//        for (Books book: books) {
+//            if (book.getCategory().equalsIgnoreCase(category)) {
+//                filterBook.add(book);
+//            }
+//        }
+//        return filterBook;
+//    }
+
+    @RequestMapping("api/books")
+    public List<Books> getBooks(@RequestParam(required = false) String category) {
+        if(category == null) {
+            return books;
+        }
+
+        return books.stream().filter(book -> book.getCategory().equalsIgnoreCase(category))
+                .toList();
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
