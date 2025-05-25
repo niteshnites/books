@@ -79,6 +79,25 @@ public class BookController {
                 .toList();
     }
 
+//    @PostMapping("/api/books")
+//    public void createBook(@RequestBody Books newBook) {
+//        for (Books book: books) {
+//            if (book.getTitle().equalsIgnoreCase(newBook.getTitle())) {
+//                return;
+//            }
+//        }
+//        books.add(newBook);
+//    }
+
+    @PostMapping("/api/books")
+    public void createBook(@RequestBody Books newBook) {
+        boolean isNewBook = books.stream()
+                        .noneMatch(book -> book.getTitle().equalsIgnoreCase(newBook.getTitle()));
+        if (isNewBook){
+            books.add(newBook);
+        }
+    }
+
 }
 
 
