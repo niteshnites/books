@@ -55,7 +55,7 @@ public class BookController {
 
     // Query Parameters
 
-//    @RequestMapping("api/books")
+//    @GetMapping("api/books")
 //    public List<Books> getBooks(@RequestParam(required = false) String category) {
 //        if(category == null) {
 //            return books;
@@ -69,7 +69,7 @@ public class BookController {
 //        return filterBook;
 //    }
 
-    @RequestMapping("api/books")
+    @GetMapping("api/books")
     public List<Books> getBooks(@RequestParam(required = false) String category) {
         if(category == null) {
             return books;
@@ -78,6 +78,8 @@ public class BookController {
         return books.stream().filter(book -> book.getCategory().equalsIgnoreCase(category))
                 .toList();
     }
+
+    // Post Request
 
 //    @PostMapping("/api/books")
 //    public void createBook(@RequestBody Books newBook) {
@@ -95,6 +97,18 @@ public class BookController {
                         .noneMatch(book -> book.getTitle().equalsIgnoreCase(newBook.getTitle()));
         if (isNewBook){
             books.add(newBook);
+        }
+    }
+
+    // Put Request
+
+    @PutMapping("/api/books/{title}")
+    public void updateBook (@PathVariable String title, @RequestBody Books updateBook) {
+        for (int i = 0; i < books.size(); i++) {
+            if (books.get(i).getTitle().equalsIgnoreCase(title)) {
+               books.set(i, updateBook);
+               return;
+            }
         }
     }
 
