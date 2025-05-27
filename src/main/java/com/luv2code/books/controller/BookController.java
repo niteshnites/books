@@ -18,12 +18,12 @@ public class BookController {
 
     private void initializeBooks() {
         books.addAll(List.of(
-                new Books("Title one", "Author one", "science"),
-                new Books("Title two", "Author two", "science"),
-                new Books("Title three", "Author three", "history"),
-                new Books("Title four", "Author four", "math"),
-                new Books("Title five", "Author five", "math"),
-                new Books("Title six", "Author six", "math")
+                new Books(1, "Title one", "Author one", "science", 5),
+                new Books(2, "Title two", "Author two", "science", 3),
+                new Books(3, "Title three", "Author three", "history", 3),
+                new Books(4, "Title four", "Author four", "math", 4),
+                new Books(5, "Title five", "Author five", "math", 2),
+                new Books(6, "Title six", "Author six", "math", 1)
         ));
     }
 
