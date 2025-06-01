@@ -1,6 +1,7 @@
 package com.luv2code.books.controller;
 
 import com.luv2code.books.entity.Books;
+import com.luv2code.books.exception.BookErrorResponse;
 import com.luv2code.books.exception.BookNotFoundException;
 import com.luv2code.books.request.BookRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -73,14 +75,15 @@ public class BookController {
     // Put Request
     @Operation(summary = "Update a Book", description = "Update the details of an existing book")
     @PutMapping("/{id}")
-    public void updateBook(@Parameter(description = "Id of the book to update") @PathVariable @Min(value = 1) long id, @Valid @RequestBody BookRequest bookRequest) {
+    public Books updateBook(@Parameter(description = "Id of the book to update") @PathVariable @Min(value = 1) long id, @Valid @RequestBody BookRequest bookRequest) {
         for (int i = 0; i < books.size(); i++) {
             if (books.get(i).getId() == id) {
                 Books updateBook = convertToBook(id, bookRequest);
                 books.set(i, updateBook);
-                return;
+                return updateBook;
             }
         }
+        throw new BookNotFoundException("Book Not Found - " + id);
     }
 
     // Delete Request
@@ -88,6 +91,11 @@ public class BookController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void deleteBook(@Parameter(description = "Id of the book to delete") @PathVariable long id) {
+        books.stream()
+                .filter(book -> book.getId() == id)
+                .findFirst()
+                .orElseThrow(() -> new BookNotFoundException("Book not found - " + id));
+
         books.removeIf(book -> book.getId() == id);
     }
 
@@ -102,7 +110,15 @@ public class BookController {
         );
     }
 
-
+    @ExceptionHandler
+    public ResponseEntity<BookErrorResponse> handleException(BookNotFoundException exc) {
+        BookErrorResponse bookErrorResponse = new BookErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                exc.getMessage(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(bookErrorResponse, HttpStatus.NOT_FOUND);
+    }
 
 }
 
