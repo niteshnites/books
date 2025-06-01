@@ -1,11 +1,20 @@
 package com.luv2code.books.controller;
 
 import com.luv2code.books.entity.Books;
+import com.luv2code.books.exception.BookNotFoundException;
+import com.luv2code.books.request.BookRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Tag(name = "Books Rest API Endpoints", description = "Operation related to books")
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
@@ -28,97 +37,72 @@ public class BookController {
     }
 
     // Get Request
-
-//    @GetMapping("/api/allBooks")
-//    public List<Books> getAllBooks() {
-//        return books;
-//    }
-
-    // Path Variables
-
-//    @GetMapping("/api/books/{title}")
-//    public Books getBookByTitle(@PathVariable String title) {
-//        for(Books book: books) {
-//            if(book.getTitle().equalsIgnoreCase(title)) {
-//                return book;
-//            }
-//        }
-//        return null;
-//    }
-
+    @Operation(summary = "Get all books", description = "Retrieve all available books")
+    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{id}")
-    public Books getBookByTitle(@PathVariable long id) {
+    public Books getBookById(@Parameter(description = "Id of the book to be retrieve") @PathVariable @Min(value = 1) long id) {
         return books.stream()
                 .filter(book -> book.getId() == id)
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new BookNotFoundException("Book not found - " + id));
     }
 
-    // Query Parameters
-
-//    @GetMapping("api/books")
-//    public List<Books> getBooks(@RequestParam(required = false) String category) {
-//        if(category == null) {
-//            return books;
-//        }
-//        List<Books> filterBook = new ArrayList<>();
-//        for (Books book: books) {
-//            if (book.getCategory().equalsIgnoreCase(category)) {
-//                filterBook.add(book);
-//            }
-//        }
-//        return filterBook;
-//    }
-
+    @Operation(summary = "Get a book by Id", description = "Retrieve a specific book by Id")
+    @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<Books> getBooks(@RequestParam(required = false) long id) {
-        if(id <= 0) {
+    public List<Books> getBooks(@Parameter(description = "Optional query parameter")
+                                    @RequestParam(required = false) String title) {
+        if(title == null) {
             return books;
         }
 
-        return books.stream().filter(book -> book.getId() == id)
+        return books.stream().filter(book -> book.getTitle().equalsIgnoreCase(title))
                 .toList();
     }
 
     // Post Request
-
-//    @PostMapping("/api/books")
-//    public void createBook(@RequestBody Books newBook) {
-//        for (Books book: books) {
-//            if (book.getTitle().equalsIgnoreCase(newBook.getTitle())) {
-//                return;
-//            }
-//        }
-//        books.add(newBook);
-//    }
-
+    @Operation(summary = "Create a new Book", description = "Add new book to the list")
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public void createBook(@RequestBody Books newBook) {
-        boolean isNewBook = books.stream()
-                        .noneMatch(book -> book.getId() <= newBook.getId());
-        if (isNewBook){
-            books.add(newBook);
-        }
+    public void createBook(@Valid @RequestBody BookRequest bookRequest) {
+        long id =  books.isEmpty() ? 1 : books.get(books.size()-1).getId() + 1;
+        Books book = convertToBook(id, bookRequest);
+        books.add(book);
     }
 
     // Put Request
-
+    @Operation(summary = "Update a Book", description = "Update the details of an existing book")
     @PutMapping("/{id}")
-    public void updateBook (@PathVariable long id, @RequestBody Books updateBook) {
+    public void updateBook(@Parameter(description = "Id of the book to update") @PathVariable @Min(value = 1) long id, @Valid @RequestBody BookRequest bookRequest) {
         for (int i = 0; i < books.size(); i++) {
             if (books.get(i).getId() == id) {
-               books.set(i, updateBook);
-               return;
+                Books updateBook = convertToBook(id, bookRequest);
+                books.set(i, updateBook);
+                return;
             }
         }
     }
 
     // Delete Request
-
+    @Operation(summary = "Delete a new Book", description = "Remove a book from the list")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void deleteBook(@PathVariable long id) {
+    public void deleteBook(@Parameter(description = "Id of the book to delete") @PathVariable long id) {
         books.removeIf(book -> book.getId() == id);
     }
+
+    // Convert to Book
+    public Books convertToBook(long id, BookRequest bookRequest) {
+        return new Books(
+                id,
+                bookRequest.getTitle(),
+                bookRequest.getAuthor(),
+                bookRequest.getCategory(),
+                bookRequest.getRating()
+        );
+    }
+
+
 
 }
 
